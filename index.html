@@ -1,0 +1,640 @@
+<html><head><base href="https://astralmanager.app/">
+    <title>Astral Manager - Gestion Cosmique de Stock</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8A2BE2; /* Violet */
+            --secondary-color: #FFD700; /* Jaune */
+            --background-color: #1E1E1E;
+            --text-color: #FFFFFF;
+            --card-background: #2D2D2D;
+            --neon-glow: 0 0 5px #8A2BE2, 0 0 10px #8A2BE2, 0 0 15px #8A2BE2, 0 0 20px #8A2BE2;
+            --neon-glow-yellow: 0 0 5px #FFD700, 0 0 10px #FFD700, 0 0 15px #FFD700, 0 0 20px #FFD700;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #240549 0%, #000000 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: transparent;
+            color: var(--text-color);
+            text-align: center;
+            padding: 1em 2em;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: background-color 0.3s ease;
+        }
+        header.scrolled {
+            background-color: rgba(36, 5, 73, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3.5em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #fee298, #b19bfb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 
+                0 0 10px rgba(254, 226, 152, 0.7),
+                0 0 20px rgba(177, 155, 251, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        header h1 img {
+            height: 50px;
+            margin: 0 15px;
+        }
+        nav {
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 10px 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 100px;
+            left: 0;
+            z-index: 1000;
+            box-shadow: none;
+        }
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            font-weight: 500;
+            opacity: 0.7;
+        }
+        nav a:hover, nav a.active {
+            opacity: 1;
+            background-color: rgba(138, 43, 226, 0.2);
+            box-shadow: var(--neon-glow);
+        }
+        .dashboard {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 160px;
+            flex-wrap: wrap;
+        }
+        .metric {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin: 10px;
+            flex: 1 1 200px;
+            transition: all 0.3s ease;
+        }
+        .metric:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--neon-glow);
+        }
+        .metric h2 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1.2em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        .metric p {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 10px 0 0 0;
+            text-shadow: 0 0 5px var(--secondary-color);
+        }
+        form {
+            background-color: rgba(45, 45, 45, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 30px;
+        }
+        input[type="text"], input[type="number"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        input[type="file"] {
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            color: transparent;
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            visibility: hidden;
+            display: none;
+        }
+        input[type="file"]::before {
+            content: 'Sélectionner une image (optionnel)';
+            display: inline-block;
+            background: transparent;
+            border: none;
+            border-radius: 5px;
+            padding: 0;
+            outline: none;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 400;
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-right: 16px;
+        }
+        input[type="file"]:hover::before {
+            opacity: 1;
+        }
+        button {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-color);
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 15px;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border: none;
+        }
+        th {
+            background-color: rgba(138, 43, 226, 0.2);
+            color: var(--text-color);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        tr {
+            background-color: rgba(45, 45, 45, 0.7);
+            transition: all 0.3s ease;
+        }
+        tr:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        td:first-child, th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+        td:last-child, th:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: var(--card-background);
+            margin: 15% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 350px;
+            border-radius: 15px;
+            color: var(--text-color);
+            box-shadow: var(--neon-glow);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .close:hover,
+        .close:focus {
+            color: var(--secondary-color);
+            text-decoration: none;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--secondary-color);
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: var(--card-background);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .item-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .stock-value {
+            background: linear-gradient(45deg, rgba(138, 43, 226, 0.2), rgba(255, 215, 0, 0.2));
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.4em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: var(--neon-glow);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #stock, #sales {
+            margin-top: 160px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>
+            Astral
+            <img src="https://cdn.discordapp.com/attachments/1126875504826384426/1130090100743749652/logo_png.png?ex=669a45ec&is=6698f46c&hm=baca4d236e546dcd4ebb42f3f449b48dbdcbe890cf1a8df91083f74b463aca50&" alt="Astral Manager Logo" width="50" height="50">
+            Manager
+        </h1>
+    </header>
+    <nav>
+        <a href="#home" onclick="showPage('home')">Accueil</a>
+        <a href="#stock" onclick="showPage('stock')">Gestion du Stock</a>
+        <a href="#sales" onclick="showPage('sales')">Ventes</a>
+    </nav>
+    <div class="container">
+        <div id="home">
+            <div class="dashboard">
+                <div class="metric">
+                    <h2>Chiffre d'Affaires</h2>
+                    <p id="ca">0 €</p>
+                </div>
+                <div class="metric">
+                    <h2>Bénéfice</h2>
+                    <p id="benefice">0 €</p>
+                </div>
+                <div class="metric">
+                    <h2>Nombre de Ventes</h2>
+                    <p id="salesCount">0</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+        <div id="stock" style="display: none;">
+            <div class="stock-value">
+                Valeur totale du stock : <span id="totalStockValue">0 €</span>
+            </div>
+            <h2>Gestion du Stock</h2>
+            <form id="stockForm">
+                <input type="text" id="articleName" placeholder="Nom de l'article" required>
+                <input type="number" id="purchasePrice" placeholder="Prix d'achat" required>
+                <input type="file" id="articleImage" accept="image/*">
+                <button type="submit">Ajouter au stock</button>
+            </form>
+            <table id="stockTable">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Nom de l'article</th>
+                        <th>Prix d'achat</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Les articles du stock seront ajoutés ici dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+        <div id="sales" style="display: none;">
+            <h2>Historique des Ventes</h2>
+            <table id="salesTable">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Nom de l'article</th>
+                        <th>Prix d'achat</th>
+                        <th>Prix de vente</th>
+                        <th>Bénéfice</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Les articles vendus seront ajoutés ici dynamiquement -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Vendre l'article</h2>
+            <p id="modalItemName"></p>
+            <form id="sellForm">
+                <input type="number" id="sellingPrice" placeholder="Prix de vente" required>
+                <button type="submit">Confirmer la vente</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let ca = 0;
+        let benefice = 0;
+        let stock = [];
+        let sales = [];
+        let currentSellingIndex = -1;
+        let performanceData = {
+            labels: [],
+            ca: [],
+            benefice: []
+        };
+
+        const modal = document.getElementById("sellModal");
+        const span = document.getElementsByClassName("close")[0];
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        function showPage(pageId) {
+            document.getElementById('home').style.display = pageId === 'home' ? 'block' : 'none';
+            document.getElementById('stock').style.display = pageId === 'stock' ? 'block' : 'none';
+            document.getElementById('sales').style.display = pageId === 'sales' ? 'block' : 'none';
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`nav a[href="#${pageId}"]`).classList.add('active');
+            if (pageId === 'stock') {
+                updateTotalStockValue();
+            }
+            window.location.hash = pageId;
+        }
+
+        function updateDashboard() {
+            document.getElementById('ca').textContent = ca.toFixed(2) + ' €';
+            document.getElementById('benefice').textContent = benefice.toFixed(2) + ' €';
+            document.getElementById('salesCount').textContent = sales.length;
+            updatePerformanceData();
+            updateChart();
+        }
+
+        function updatePerformanceData() {
+            const now = new Date().toLocaleString();
+            performanceData.labels.push(now);
+            performanceData.ca.push(ca);
+            performanceData.benefice.push(benefice);
+        }
+
+        function addToStock(name, price, imageUrl) {
+            stock.push({ name, price, imageUrl });
+            updateStockTable();
+            updateTotalStockValue();
+        }
+
+        function updateTotalStockValue() {
+            const totalValue = stock.reduce((total, item) => total + item.price, 0);
+            document.getElementById('totalStockValue').textContent = totalValue.toFixed(2) + ' €';
+        }
+
+        function updateStockTable() {
+            const tbody = document.querySelector('#stockTable tbody');
+            tbody.innerHTML = '';
+            stock.forEach((item, index) => {
+                const row = tbody.insertRow();
+                const imgCell = row.insertCell(0);
+                if (item.imageUrl) {
+                    const img = document.createElement('img');
+                    img.src = item.imageUrl;
+                    img.alt = item.name;
+                    img.className = 'item-image';
+                    imgCell.appendChild(img);
+                } else {
+                    imgCell.textContent = 'Pas d\'image';
+                }
+                row.insertCell(1).textContent = item.name;
+                row.insertCell(2).textContent = item.price.toFixed(2) + ' €';
+                const actionCell = row.insertCell(3);
+                const sellButton = document.createElement('button');
+                sellButton.textContent = 'Vendre';
+                sellButton.onclick = () => openSellModal(index);
+                actionCell.appendChild(sellButton);
+            });
+        }
+
+        function updateSalesTable() {
+            const tbody = document.querySelector('#salesTable tbody');
+            tbody.innerHTML = '';
+            sales.forEach((item) => {
+                const row = tbody.insertRow();
+                const imgCell = row.insertCell(0);
+                if (item.imageUrl) {
+                    const img = document.createElement('img');
+                    img.src = item.imageUrl;
+                    img.alt = item.name;
+                    img.className = 'item-image';
+                    imgCell.appendChild(img);
+                } else {
+                    imgCell.textContent = 'Pas d\'image';
+                }
+                row.insertCell(1).textContent = item.name;
+                row.insertCell(2).textContent = item.purchasePrice.toFixed(2) + ' €';
+                row.insertCell(3).textContent = item.sellingPrice.toFixed(2) + ' €';
+                row.insertCell(4).textContent = (item.sellingPrice - item.purchasePrice).toFixed(2) + ' €';
+            });
+        }
+
+        function openSellModal(index) {
+            currentSellingIndex = index;
+            const item = stock[index];
+            document.getElementById('modalItemName').textContent = item.name;
+            document.getElementById('sellingPrice').value = '';
+            modal.style.display = "block";
+        }
+
+        function sellItem(sellingPrice) {
+            const item = stock[currentSellingIndex];
+            const soldItem = {
+                ...item,
+                sellingPrice: sellingPrice,
+                purchasePrice: item.price
+            };
+            sales.push(soldItem);
+            stock.splice(currentSellingIndex, 1);
+            ca += sellingPrice;
+            benefice += sellingPrice - item.price;
+            updateDashboard();
+            updateStockTable();
+            updateSalesTable();
+            updateTotalStockValue();
+            modal.style.display = "none";
+        }
+
+        document.getElementById('stockForm').onsubmit = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('articleName').value;
+            const price = parseFloat(document.getElementById('purchasePrice').value);
+            const imageFile = document.getElementById('articleImage').files[0];
+            
+            if (name && !isNaN(price)) {
+                if (imageFile) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        addToStock(name, price, event.target.result);
+                    };
+                    reader.readAsDataURL(imageFile);
+                } else {
+                    addToStock(name, price);
+                }
+                this.reset();
+            }
+        };
+
+        document.getElementById('sellForm').onsubmit = function(e) {
+            e.preventDefault();
+            const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
+            if (!isNaN(sellingPrice)) {
+                sellItem(sellingPrice);
+            }
+        };
+
+        // Initialisation du graphique
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: performanceData.labels,
+                datasets: [{
+                    label: 'Chiffre d\'Affaires',
+                    data: performanceData.ca,
+                    borderColor: '#fee298', // Nouveau jaune
+                    tension: 0.1
+                }, {
+                    label: 'Bénéfice',
+                    data: performanceData.benefice,
+                    borderColor: '#b19bfb', // Nouveau violet
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#FFFFFF'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#FFFFFF'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#FFFFFF',
+                            font: {
+                                family: 'Montserrat'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateChart() {
+            chart.data.labels = performanceData.labels;
+            chart.data.datasets[0].data = performanceData.ca;
+            chart.data.datasets[1].data = performanceData.benefice;
+            chart.update();
+        }
+
+        // Ajout de l'effet de scroll pour le header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Gestion de la navigation par hash
+        window.addEventListener('hashchange', function() {
+            const pageId = window.location.hash.slice(1) || 'home';
+            showPage(pageId);
+        });
+
+        // Initialisation
+        updateDashboard();
+        updateTotalStockValue();
+        const initialPage = window.location.hash.slice(1) || 'home';
+        showPage(initialPage);
+    </script>
+</body></html>
